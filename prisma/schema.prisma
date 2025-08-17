@@ -1,20 +1,123 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+// prisma/schema.prisma
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql" // or sqlite during dev
+  url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+}
 
-    @@index([name])
+enum TaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum TaskActivityType {
+  CREATED
+  TITLE_UPDATED
+  NOTES_UPDATED
+  STATUS_CHANGED
+  COMPLETED
+  REORDERED
+}
+
+model Project {
+  id          String         @id @default(cuid())
+  title       String
+  description String?        @db.Text
+  status      ProjectStatus  @default(ACTIVE)
+  pinned      Boolean        @default(false)
+  pinnedAt    DateTime?
+  position    Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  tasks       Task[]
+  flowNodes   FlowNode[]
+  flowEdges   FlowEdge[]
+
+  @@index([status, pinned, position, createdAt])
+}
+
+model Task {
+  id           String         @id @default(cuid())
+  projectId    String
+  title        String
+  notesJson    Json           @default("{}")
+  status       TaskStatus     @default(NOT_STARTED)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  project      Project        @relation(fields: [projectId], references: [id])
+  statusEvents TaskStatusEvent[]
+  activities   TaskActivity[]
+
+  @@index([projectId, status, updatedAt])
+}
+
+model TaskStatusEvent {
+  id     String     @id @default(cuid())
+  taskId String
+  from   TaskStatus?
+  to     TaskStatus
+  at     DateTime   @default(now())
+
+  task   Task       @relation(fields: [taskId], references: [id])
+
+  @@index([taskId, at])
+}
+
+model TaskActivity {
+  id     String            @id @default(cuid())
+  taskId String
+  type   TaskActivityType
+  at     DateTime          @default(now())
+  data   Json?
+
+  task   Task              @relation(fields: [taskId], references: [id])
+
+  @@index([taskId, at])
+}
+
+model FlowNode {
+  id          String    @id @default(cuid())
+  projectId   String
+  title       String
+  subtitle    String?
+  description Json?
+  x           Float     @default(0)
+  y           Float     @default(0)
+  colorHex    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project     Project   @relation(fields: [projectId], references: [id])
+  sourceEdges FlowEdge[] @relation("sourceEdges")
+  targetEdges FlowEdge[] @relation("targetEdges")
+
+  @@index([projectId])
+}
+
+model FlowEdge {
+  id           String   @id @default(cuid())
+  projectId    String
+  sourceNodeId String
+  targetNodeId String
+  bendPoints   Json?
+  label        String?
+
+  project      Project  @relation(fields: [projectId], references: [id])
+  source       FlowNode @relation("sourceEdges", fields: [sourceNodeId], references: [id])
+  target       FlowNode @relation("targetEdges", fields: [targetNodeId], references: [id])
+
+  @@index([projectId])
+  @@index([sourceNodeId])
+  @@index([targetNodeId])
 }

@@ -1,0 +1,15 @@
+/* src/styles/reactflow-overrides.css */
+
+/* Darker node surface + readable text in dark */
+.react-flow__node-default {
+  background-color: #0b0f1a; /* darker */
+  color: #e2e8f0; /* readable text */
+  border-color: #1e293b; /* slate-800-ish */
+}
+
+/* Keep selected highlight visible on darker surface */
+.react-flow__node.selected {
+  outline: 2px solid #60a5fa;
+  outline-offset: 0;
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.18);
+}
