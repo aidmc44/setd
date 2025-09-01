@@ -1,43 +1,33 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16-alpine
-    container_name: t3todo-db
+    container_name: setd-db
     environment:
-      POSTGRES_USER: t3user
-      POSTGRES_PASSWORD: t3pass
-      POSTGRES_DB: t3todo
+      POSTGRES_USER: setduser
+      POSTGRES_PASSWORD: setdpass
+      POSTGRES_DB: setd
       TZ: "UTC"
     volumes:
-      # For TrueNAS SCALE, change ./data/db to a hostPath dataset like:
-      # - /mnt/tank/apps/t3todo/postgres:/var/lib/postgresql/data
+      # On TrueNAS, change to a dataset path:
+      # - /mnt/tank/apps/setd/postgres:/var/lib/postgresql/data
       - ./data/db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U t3user -d t3todo"]
+      test: ["CMD-SHELL", "pg_isready -U setduser -d setd"]
       interval: 5s
       timeout: 5s
       retries: 10
     restart: unless-stopped
 
   app:
-    # Use your Docker Hub image once published:
-    # image: yourhubuser/t3todo:latest
-    build: .
-    container_name: t3todo-app
+    image: aidmc44/setd:latest
+    container_name: setd-app
     depends_on:
       db:
         condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3000
-      # Service name "db" resolves on the compose network
-      DATABASE_URL: postgres://t3user:t3pass@db:5432/t3todo
+      DATABASE_URL: postgres://setduser:setdpass@db:5432/setd
     ports:
-      # Map host port as needed; TrueNAS will handle this in Apps UI
-      - "3000:3000"
+      - "34001:3000" # host:container (changed from 3000:3000)
     restart: unless-stopped
-
-volumes:
-  # Named volume optional if you prefer instead of hostPath/bind
-  # dbdata:

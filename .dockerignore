@@ -1,0 +1,18 @@
+# Dependencies and build artifacts
+node_modules
+.pnpm-store
+.next
+out
+dist
+coverage
+
+# VCS and misc
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+README.md
+
+# OS/editor
+.DS_Store
+*.log

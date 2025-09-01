@@ -9,7 +9,7 @@ export default function ProjectFocusModal({
   project,
   onClose,
 }: {
-  project: Project;
+  project: Project | undefined; // allow undefined
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -24,8 +24,10 @@ export default function ProjectFocusModal({
       document.body.style.overflow = prev;
     };
   }, [onClose]);
+  if (!project) return null; // guard
 
   return (
+    <div className="fixed inset-0 z-50 ...">
     <div
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 p-4"
       role="dialog"
@@ -48,6 +50,10 @@ export default function ProjectFocusModal({
         <div className="p-4">
           <ProjectCard project={project} />
         </div>
+      </div>
+    </div>
+    <div className="p-4">
+        <ProjectCard project={project} />
       </div>
     </div>
   );

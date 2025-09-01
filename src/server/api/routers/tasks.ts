@@ -4,14 +4,14 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TaskStatus, TaskActivityType } from "@prisma/client";
 
 export const tasksRouter = createTRPCRouter({
-  listByProject: publicProcedure
-    .input(z.object({ projectId: z.string() }))
-    .query(({ ctx, input }) =>
-      ctx.db.task.findMany({
-        where: { projectId: input.projectId },
-        orderBy: { createdAt: "asc" },
-      }),
-    ),
+	listByProject: publicProcedure
+	  .input(z.object({ projectId: z.string() }))
+	  .query(({ ctx, input }) =>
+	    ctx.db.task.findMany({
+	      where: { projectId: input.projectId },
+	      orderBy: { createdAt: "asc" },
+	    }),
+	  ),
 
   getActivities: publicProcedure
     .input(z.object({ taskId: z.string() }))
